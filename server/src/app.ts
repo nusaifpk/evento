@@ -33,27 +33,16 @@ initializeDB().catch(console.error);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// API Routes (with /api prefix for production, without for Vite middleware)
+// API Routes (without /api prefix - will be mounted at /api in Vite)
 // Handle both /events and /events/ paths
-app.use('/api/events', eventRoutes);
-app.use('/api/events/', eventRoutes);
 app.use('/events', eventRoutes);
 app.use('/events/', eventRoutes);
 
 // Admin Routes
-app.use('/api/admin', adminRoutes);
 app.use('/admin', adminRoutes);
 console.log('[Express] Admin routes registered at /admin');
 
 // Health check
-app.get('/api/health', (req: Request, res: Response) => {
-  res.json({
-    success: true,
-    message: 'Evento API is running',
-    timestamp: new Date().toISOString(),
-  });
-});
-
 app.get('/health', (req: Request, res: Response) => {
   res.json({
     success: true,

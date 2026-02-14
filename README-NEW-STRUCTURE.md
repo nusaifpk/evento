@@ -132,26 +132,24 @@ npm run seed
 - `npm run seed` - Seed database with sample events
 - `npm run install:all` - Install all dependencies
 
-## 🚀 Deployment (Render)
+## 🚀 Deployment (Netlify)
 
-The project is configured for Render deployment:
+The project is configured for Netlify deployment:
 
-1. **Using Render Blueprint** (Recommended):
-   - Push your code to GitHub
-   - Go to [Render Dashboard](https://dashboard.render.com)
-   - Click "New +" → "Blueprint"
-   - Connect your repository
-   - Render will automatically detect `render.yaml` and create both services
+1. **Client Deployment**: 
+   - Build command: `cd client && npm install && npm run build`
+   - Publish directory: `client/dist`
+   - Configuration: `client/netlify.toml`
 
-2. **Manual Deployment**:
-   - **Backend**: Deploy as Web Service (see `DEPLOYMENT.md`)
-   - **Frontend**: Deploy as Static Site (see `DEPLOYMENT.md`)
+2. **Environment Variables** (set in Netlify dashboard):
+   - `VITE_API_URL` - Your API endpoint URL
+   - `MONGODB_URI` - MongoDB connection string (if using serverless functions)
 
-3. **Environment Variables** (set in Render dashboard):
-   - Backend: `MONGODB_URI`, `NODE_ENV=production`
-   - Frontend: `VITE_API_URL` (pointing to your backend URL)
-
-See `DEPLOYMENT.md` for detailed deployment instructions.
+3. **Deploy**:
+   - Connect your repository to Netlify
+   - Netlify will automatically detect the `netlify.toml` configuration
+   - Set environment variables in Netlify dashboard
+   - Deploy!
 
 ## 🏗️ Architecture Benefits
 

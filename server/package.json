@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "tsx src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.prod.js",
     "seed": "tsx src/events.seed.ts"
   },
   "dependencies": {
