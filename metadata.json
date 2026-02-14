@@ -1,0 +1,5 @@
+{
+  "name": "Evento",
+  "description": "A dark-themed event discovery application with immersive UI, featuring event feeds, live maps, and personalized profiles.",
+  "requestFramePermissions": []
+}
