@@ -1,9 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Music, MapPin, LocateFixed, Monitor, Settings, Flame, Palette, Star } from 'lucide-react';
+import { getNearbyEvents, type ApiEvent, formatPrice } from '../services/api';
 
 export const MapScreen = () => {
     const navigate = useNavigate();
+    const [events, setEvents] = useState<ApiEvent[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedEvent, setSelectedEvent] = useState<ApiEvent | null>(null);
+
+    useEffect(() => {
+        const fetchEvents = async () => {
+            try {
+                const fetchedEvents = await getNearbyEvents(12.9716, 77.5946); // Bangalore coordinates
+                setEvents(fetchedEvents);
+                if (fetchedEvents.length > 0) {
+                    setSelectedEvent(fetchedEvents[0]); // Select first event for bottom card
+                }
+                setLoading(false);
+            } catch (err) {
+                console.error('Error fetching events for map:', err);
+                setLoading(false);
+            }
+        };
+
+        fetchEvents();
+    }, []);
 
     return (
         <div className="bg-background-dark text-white font-display h-screen w-full relative overflow-hidden select-none">
@@ -19,23 +41,28 @@ export const MapScreen = () => {
                 <div className="absolute bottom-[30%] right-[30%] text-gray-600 text-[10px] tracking-widest uppercase rotate-[12deg] opacity-60">Sunset Blvd</div>
 
                 {/* Pins */}
-                <div className="absolute top-[30%] left-[20%] flex flex-col items-center group cursor-pointer transition-transform hover:scale-110">
-                    <div className="w-10 h-10 rounded-full bg-surface-dark border border-gray-700 shadow-lg flex items-center justify-center text-gray-400">
-                        <Monitor size={16} />
-                    </div>
-                </div>
-
-                <div className="absolute top-[45%] left-[55%] flex flex-col items-center z-10 cursor-pointer">
-                    <div className="relative">
-                        <div className="absolute -inset-1 bg-primary blur rounded-full opacity-60 animate-pulse"></div>
-                        <div className="relative w-12 h-12 rounded-full bg-primary shadow-[0_0_15px_rgba(244,37,244,0.6)] flex items-center justify-center text-white border-2 border-white">
-                            <Music size={24} />
+                {!loading && events.map((event, index) => {
+                    const positions = [
+                        { top: '30%', left: '20%' },
+                        { top: '45%', left: '55%' },
+                        { top: '60%', left: '35%' },
+                    ];
+                    const pos = positions[index % positions.length];
+                    
+                    return (
+                        <div key={event._id} className={`absolute top-[${pos.top}] left-[${pos.left}] flex flex-col items-center z-10 cursor-pointer`} onClick={() => setSelectedEvent(event)}>
+                            <div className="relative">
+                                <div className="absolute -inset-1 bg-primary blur rounded-full opacity-60 animate-pulse"></div>
+                                <div className="relative w-12 h-12 rounded-full bg-primary shadow-[0_0_15px_rgba(244,37,244,0.6)] flex items-center justify-center text-white border-2 border-white">
+                                    <Music size={24} />
+                                </div>
+                            </div>
+                            <div className="mt-2 px-3 py-1 bg-surface-dark/90 backdrop-blur-md border border-primary/30 rounded-full text-xs font-bold text-white shadow-lg whitespace-nowrap">
+                                {formatPrice(event.price, event.city)} • {event.title.split(' ')[0]}
+                            </div>
                         </div>
-                    </div>
-                    <div className="mt-2 px-3 py-1 bg-surface-dark/90 backdrop-blur-md border border-primary/30 rounded-full text-xs font-bold text-white shadow-lg whitespace-nowrap">
-                        $45 • Neon Nights
-                    </div>
-                </div>
+                    );
+                })}
             </div>
 
             {/* UI Layer */}
@@ -80,39 +107,45 @@ export const MapScreen = () => {
                         <LocateFixed className="text-primary" size={20} />
                     </button>
 
-                    <div className="relative w-full bg-surface-dark/80 backdrop-blur-xl border border-white/10 rounded-2xl p-3 shadow-2xl flex gap-3 transition-transform duration-300 transform cursor-pointer" onClick={() => navigate('/event/1')}>
-                         <div className="absolute -inset-[1px] bg-gradient-to-r from-primary/30 to-transparent rounded-2xl -z-10 blur-sm"></div>
-                         <div className="relative h-24 w-24 flex-shrink-0 rounded-xl overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1570158268183-d296b2892211?q=80&w=400&auto=format&fit=crop" alt="Event" className="w-full h-full object-cover" />
-                            <div className="absolute top-1 left-1 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] font-bold text-white uppercase tracking-wide flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                                Live
-                            </div>
-                         </div>
-                         
-                         <div className="flex-1 flex flex-col justify-between py-0.5">
-                            <div>
-                                <div className="flex justify-between items-start">
-                                    <h3 className="text-white font-bold text-lg leading-tight line-clamp-1">Neon Nights Rave</h3>
-                                    <div className="flex items-center gap-0.5 text-primary text-xs font-bold bg-primary/10 px-2 py-0.5 rounded-full">
-                                        <Star size={12} /> 4.9
+                    {selectedEvent ? (
+                        <div className="relative w-full bg-surface-dark/80 backdrop-blur-xl border border-white/10 rounded-2xl p-3 shadow-2xl flex gap-3 transition-transform duration-300 transform cursor-pointer" onClick={() => navigate(`/event/${selectedEvent._id}`)}>
+                             <div className="absolute -inset-[1px] bg-gradient-to-r from-primary/30 to-transparent rounded-2xl -z-10 blur-sm"></div>
+                             <div className="relative h-24 w-24 flex-shrink-0 rounded-xl overflow-hidden">
+                                <img src={selectedEvent.images[0] || 'https://images.unsplash.com/photo-1570158268183-d296b2892211?q=80&w=400&auto=format&fit=crop'} alt={selectedEvent.title} className="w-full h-full object-cover" />
+                                <div className="absolute top-1 left-1 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] font-bold text-white uppercase tracking-wide flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                    Live
+                                </div>
+                             </div>
+                             
+                             <div className="flex-1 flex flex-col justify-between py-0.5">
+                                <div>
+                                    <div className="flex justify-between items-start">
+                                        <h3 className="text-white font-bold text-lg leading-tight line-clamp-1">{selectedEvent.title}</h3>
+                                        <div className="flex items-center gap-0.5 text-primary text-xs font-bold bg-primary/10 px-2 py-0.5 rounded-full">
+                                            <Star size={12} /> 4.9
+                                        </div>
                                     </div>
+                                    <p className="text-gray-400 text-xs mt-1 flex items-center gap-1">
+                                        <MapPin size={10} className="mr-1" />
+                                        {selectedEvent.address}
+                                    </p>
                                 </div>
-                                <p className="text-gray-400 text-xs mt-1 flex items-center gap-1">
-                                    <MapPin size={10} className="mr-1" />
-                                    The Warehouse • 0.8 km
-                                </p>
-                            </div>
-                            <div className="flex justify-between items-end mt-2">
-                                <div className="text-white font-bold text-base">
-                                    $20 <span className="text-xs text-gray-500 font-normal">/ person</span>
+                                <div className="flex justify-between items-end mt-2">
+                                    <div className="text-white font-bold text-base">
+                                        {formatPrice(selectedEvent.price, selectedEvent.city)} <span className="text-xs text-gray-500 font-normal">/ person</span>
+                                    </div>
+                                    <button className="bg-primary text-white text-xs font-bold px-4 py-2 rounded-lg shadow-[0_0_10px_rgba(244,37,244,0.3)]">
+                                        Get Tickets
+                                    </button>
                                 </div>
-                                <button className="bg-primary text-white text-xs font-bold px-4 py-2 rounded-lg shadow-[0_0_10px_rgba(244,37,244,0.3)]">
-                                    Get Tickets
-                                </button>
-                            </div>
-                         </div>
-                    </div>
+                             </div>
+                        </div>
+                    ) : (
+                        <div className="w-full bg-surface-dark/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 text-center">
+                            <p className="text-gray-400">No events found nearby</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

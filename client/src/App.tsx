@@ -9,6 +9,9 @@ import { EventDetailsScreen } from './screens/EventDetailsScreen';
 import { SearchScreen } from './screens/SearchScreen';
 import { SavedScreen } from './screens/SavedScreen';
 import { ProfileScreen } from './screens/ProfileScreen';
+import { AdminScreen } from './screens/AdminScreen';
+import { CreateEventScreen } from './screens/CreateEventScreen';
+import { EditEventScreen } from './screens/EditEventScreen';
 
 const Layout = ({ children }: { children?: React.ReactNode }) => {
   const location = useLocation();
@@ -36,6 +39,9 @@ export default function App() {
           <Route path="/search" element={<SearchScreen />} />
           <Route path="/saved" element={<SavedScreen />} />
           <Route path="/profile" element={<ProfileScreen />} />
+          <Route path="/admin" element={<AdminScreen />} />
+          <Route path="/admin/create" element={<CreateEventScreen />} />
+          <Route path="/admin/edit/:id" element={<EditEventScreen />} />
         </Routes>
       </Layout>
     </BrowserRouter>

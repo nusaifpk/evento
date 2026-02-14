@@ -16,6 +16,7 @@ import {
   formatPrice,
   type ApiEvent,
 } from '../services/api';
+import { getGoogleMapsNavigationUrl, getGoogleMapsEmbedUrl } from '../utils/helpers';
 
 export const EventDetailsScreen = () => {
     const navigate = useNavigate();
@@ -171,14 +172,42 @@ export const EventDetailsScreen = () => {
                         <div className="flex-1">
               <h3 className="text-lg font-bold text-white mb-0.5">{event.address}</h3>
               <p className="text-sm text-gray-400">{event.city}</p>
-                            <div className="mt-3 rounded-xl overflow-hidden h-24 relative border border-white/5 group cursor-pointer bg-neutral-900">
-                                <div className="absolute inset-0 bg-neutral-800 opacity-50"></div>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="px-3 py-1.5 rounded-lg bg-black/40 backdrop-blur-md text-xs font-bold text-white border border-white/20">
+                            <a
+                              href={getGoogleMapsNavigationUrl(
+                                event.location?.coordinates as [number, number] | undefined,
+                                event.address,
+                                event.city,
+                                'driving'
+                              )}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-3 rounded-xl overflow-hidden h-32 relative border border-white/5 group cursor-pointer bg-neutral-900 block hover:border-primary/50 transition-colors"
+                            >
+                                {/* Mini Map Preview */}
+                                <iframe
+                                  src={getGoogleMapsEmbedUrl(
+                                    event.location?.coordinates as [number, number] | undefined,
+                                    event.address,
+                                    event.city,
+                                    15
+                                  )}
+                                  width="100%"
+                                  height="100%"
+                                  style={{ border: 0 }}
+                                  allowFullScreen
+                                  loading="lazy"
+                                  referrerPolicy="no-referrer-when-downgrade"
+                                  className="absolute inset-0 w-full h-full"
+                                />
+                                {/* Overlay with Get Directions button */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent group-hover:from-black/70 transition-opacity"></div>
+                                <div className="absolute bottom-0 left-0 right-0 p-3 flex items-center justify-center">
+                  <span className="px-4 py-2 rounded-lg bg-black/60 backdrop-blur-md text-xs font-bold text-white border border-white/20 group-hover:bg-primary/30 group-hover:border-primary/50 transition-colors flex items-center gap-2">
+                    <MapPin size={14} />
                     Get Directions
                   </span>
                                 </div>
-                            </div>
+                            </a>
                         </div>
                     </div>
                 </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, Navigation, Star, ArrowRight, MapPin, MapPinOff } from 'lucide-react';
 import {
+  getAllEvents,
   getNearbyEvents,
   formatDate,
   formatTime,
@@ -19,16 +20,25 @@ export const HomeScreen = () => {
   const [events, setEvents] = useState<ApiEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [useLocation, setUseLocation] = useState(true);
+  const [useLocation, setUseLocation] = useState(false); // Disabled by default
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number }>({
     lat: DEFAULT_LAT,
     lng: DEFAULT_LNG,
   });
-  const [currentLocationName, setCurrentLocationName] = useState<string>('Default Location');
+  const [currentLocationName, setCurrentLocationName] = useState<string>('Bangalore (Default)');
 
+  // Initialize with default location (geolocation disabled)
   useEffect(() => {
-    // Try to get user's location only if location is enabled
-    if (useLocation && navigator.geolocation) {
+    setUserLocation({
+      lat: DEFAULT_LAT,
+      lng: DEFAULT_LNG,
+    });
+    setCurrentLocationName('Bangalore (Default)');
+  }, []);
+
+  // Request location only when user explicitly enables it (user gesture)
+  const requestUserLocation = () => {
+    if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setUserLocation({
@@ -36,6 +46,7 @@ export const HomeScreen = () => {
             lng: position.coords.longitude,
           });
           setCurrentLocationName('Your Location');
+          setUseLocation(true);
         },
         () => {
           // Use default location if geolocation fails
@@ -48,22 +59,18 @@ export const HomeScreen = () => {
           setCurrentLocationName('Bangalore (Default)');
         }
       );
-    } else {
-      // Use default location when location is disabled
-      setUserLocation({
-        lat: DEFAULT_LAT,
-        lng: DEFAULT_LNG,
-      });
-      setCurrentLocationName('Bangalore (Default)');
     }
-  }, [useLocation]);
+  };
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await getNearbyEvents(userLocation.lat, userLocation.lng);
+        // Fetch all events by default, or nearby events if location is enabled
+        const data = useLocation
+          ? await getNearbyEvents(userLocation.lat, userLocation.lng)
+          : await getAllEvents();
         setEvents(data);
       } catch (err) {
         setError('Failed to load events. Please try again.');
@@ -74,7 +81,7 @@ export const HomeScreen = () => {
     };
 
     fetchEvents();
-  }, [userLocation.lat, userLocation.lng]);
+  }, [useLocation, userLocation.lat, userLocation.lng]);
 
   // Transform events for display
   const featuredEvents = events.slice(0, 2);
@@ -123,7 +130,18 @@ export const HomeScreen = () => {
   }
 
   const toggleLocation = () => {
-    setUseLocation(!useLocation);
+    if (!useLocation) {
+      // User wants to enable location - request it (user gesture)
+      requestUserLocation();
+    } else {
+      // User wants to disable location - use default
+      setUseLocation(false);
+      setUserLocation({
+        lat: DEFAULT_LAT,
+        lng: DEFAULT_LNG,
+      });
+      setCurrentLocationName('Bangalore (Default)');
+    }
     setLoading(true);
   };
 
@@ -161,7 +179,9 @@ export const HomeScreen = () => {
             <button
               onClick={() => {
                 setLoading(true);
-                getNearbyEvents(userLocation.lat, userLocation.lng)
+                (useLocation
+                  ? getNearbyEvents(userLocation.lat, userLocation.lng)
+                  : getAllEvents())
                   .then((data) => {
                     setEvents(data);
                     setError(null);

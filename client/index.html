@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Evento</title>
+    <link rel="icon" type="image/png" href="/assets/logoicon.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#f425f4",
+              "primary-dark": "#d920d9",
+              "background-light": "#f8f5f8",
+              "background-dark": "#221022",
+              "surface-dark": "#2d1b2d",
+              "surface-light": "#ffffff",
+            },
+            fontFamily: {
+              display: ["Plus Jakarta Sans", "sans-serif"],
+            },
+            animation: {
+              "fade-in-up": "fadeInUp 0.8s ease-out forwards",
+              "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+            },
+            keyframes: {
+              fadeInUp: {
+                "0%": { opacity: "0", transform: "translateY(20px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" },
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #221022; /* Fallback */
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden; /* Only prevent horizontal scroll, allow vertical */
+      }
+      
+      /* Hide scrollbar utility */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      /* Custom Map Pattern */
+      .map-pattern {
+        background-color: #121212;
+        background-image: 
+            radial-gradient(circle at 50% 50%, #2a152a 0%, transparent 10%),
+            linear-gradient(#1e1e1e 1px, transparent 1px),
+            linear-gradient(90deg, #1e1e1e 1px, transparent 1px);
+        background-size: 100px 100px, 40px 40px, 40px 40px;
+      }
+
+      /* Range Slider Customization */
+      input[type=range] {
+        -webkit-appearance: none;
+        width: 100%;
+        background: transparent;
+      }
+      input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 24px;
+        width: 24px;
+        border-radius: 50%;
+        background: #f425f4;
+        cursor: pointer;
+        margin-top: -10px;
+        box-shadow: 0 0 10px rgba(244, 37, 244, 0.5);
+        border: 2px solid white;
+      }
+      input[type=range]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 4px;
+        cursor: pointer;
+        background: #4a304a;
+        border-radius: 9999px;
+      }
+
+      /* Checkbox Toggle */
+      .toggle-checkbox:checked {
+        right: 0;
+        border-color: #f425f4;
+      }
+      .toggle-checkbox:checked + .toggle-label {
+        background-color: #f425f4;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

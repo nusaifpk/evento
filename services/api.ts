@@ -131,10 +131,36 @@ export const calculateDistance = (
 };
 
 /**
- * Format price
+ * Format price based on location
+ * Uses ₹ for Indian cities, $ for others
  */
-export const formatPrice = (price: number): string => {
+export const formatPrice = (price: number, city?: string): string => {
   if (price === 0) return 'Free';
-  return `$${price.toFixed(0)}`;
+  
+  // Indian cities list
+  const indianCities = [
+    'Kochi', 'Bangalore', 'Mumbai', 'Delhi', 'Chennai', 'Kolkata',
+    'Hyderabad', 'Pune', 'Jaipur', 'Lucknow', 'Ahmedabad', 'Chandigarh',
+    'Indore', 'Nagpur', 'Bhopal', 'Visakhapatnam', 'Coimbatore', 'Kochi',
+    'Thiruvananthapuram', 'Guwahati', 'Bhubaneswar', 'Amritsar', 'Nashik',
+    'Vijayawada', 'Madurai', 'Raipur', 'Ranchi', 'Gwalior', 'Jabalpur',
+    'Jodhpur', 'Aurangabad', 'Guntur', 'Tirupati', 'Mysore', 'Mangalore',
+    'Trivandrum', 'Varanasi', 'Patna', 'Srinagar', 'Agra', 'Noida',
+    'Gurgaon', 'Faridabad', 'Ghaziabad', 'Meerut', 'Rajkot', 'Kota',
+    'Chandigarh', 'Ludhiana', 'Cochin', 'Bareilly', 'Aligarh', 'Moradabad',
+    'Jalandhar', 'Firozabad', 'Kochi', 'Bhilai', 'Amravati', 'Allahabad',
+    'Ranchi', 'Gulbarga', 'Jamshedpur', 'Bhavnagar', 'Davanagere', 'Kolar',
+    'Kozhikode', 'Akola', 'Bellary', 'Rajahmundry', 'Tumkur', 'Khammam'
+  ];
+  
+  // Check if city is in India
+  const isIndianCity = city && indianCities.some(indianCity => 
+    city.toLowerCase().includes(indianCity.toLowerCase())
+  );
+  
+  // Use appropriate currency symbol
+  const currency = isIndianCity ? '₹' : '$';
+  
+  return `${currency}${price.toFixed(0)}`;
 };
 
