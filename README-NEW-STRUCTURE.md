@@ -136,23 +136,63 @@ npm run seed
 
 The project is configured for Render deployment:
 
-1. **Server Deployment**: 
-   - Root Directory: `server`
-   - Build command: `npm install && npm run build`
-   - Start command: `npm start`
-   - Environment: Node.js
+### Prerequisites
+- MongoDB database (MongoDB Atlas recommended)
+- Render account (free tier available)
 
-2. **Environment Variables** (set in Render dashboard):
-   - `NODE_ENV=production`
-   - `MONGODB_URI` - MongoDB connection string
-   - `PORT` - Port number (Render sets this automatically)
+### Deployment Steps
 
-3. **Deploy**:
-   - Connect your repository to Render
-   - Set Root Directory to `server`
-   - Set build and start commands
-   - Add environment variables
-   - Deploy!
+1. **Prepare Your Repository**:
+   - Ensure all code is pushed to GitHub/GitLab/Bitbucket
+   - The `render.yaml` file is already configured
+
+2. **Create a New Web Service on Render**:
+   - Go to [Render Dashboard](https://dashboard.render.com)
+   - Click "New +" → "Web Service"
+   - Connect your repository
+   - Render will auto-detect the `render.yaml` configuration
+
+3. **Environment Variables** (set in Render dashboard):
+   - `MONGODB_URI` - Your MongoDB connection string (required)
+   - `NODE_ENV` - Set to `production` (auto-set by Render)
+   - `PORT` - Set to `10000` (auto-set by Render)
+
+4. **Build & Deploy**:
+   - Render will automatically:
+     - Install all dependencies (`npm run install:all`)
+     - Build the client (`npm run build:all`)
+     - Build the server (`npm run build:server`)
+     - Start the production server (`npm run start:prod`)
+
+5. **Health Check**:
+   - Render will monitor `/api/health` endpoint
+   - Your app will be live at: `https://your-app-name.onrender.com`
+
+### Manual Deployment (Alternative)
+
+If you prefer manual setup:
+
+1. **Build Commands**:
+   ```bash
+   npm run install:all
+   npm run build:all
+   cd server && npm run build
+   ```
+
+2. **Start Command**:
+   ```bash
+   npm run start:prod
+   ```
+
+3. **Root Directory**: Leave as root (`.`)
+
+### Production Server
+
+The production server (`server/src/server.prod.ts`):
+- Serves the built React app from `client/dist`
+- Handles API routes at `/api/*`
+- Provides SPA fallback for client-side routing
+- Connects to MongoDB automatically
 
 ## 🏗️ Architecture Benefits
 

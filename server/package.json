@@ -5,9 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx src/server.ts",
-    "build": "npm run build:client && tsc",
-    "build:client": "cd ../client && npm install && npm run build",
-    "start": "node dist/server.js",
+    "build": "tsc",
+    "start": "node dist/server.prod.js",
     "seed": "tsx src/events.seed.ts"
   },
   "dependencies": {
