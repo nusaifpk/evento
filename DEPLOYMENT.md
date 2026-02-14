@@ -2,7 +2,7 @@
 
 ## Architecture
 
-- **Frontend**: React app deployed as static site on Render
+- **Frontend**: React app deployed as web service on Render
 - **Backend**: Express server deployed as web service on Render
 
 ## Deployment Steps
@@ -41,19 +41,22 @@
 6. Click "Create Web Service"
 7. Note the service URL (e.g., `https://evento-api.onrender.com`)
 
-#### Deploy Frontend (Static Site)
+#### Deploy Frontend (Web Service)
 
 1. Go to [Render Dashboard](https://dashboard.render.com)
-2. Click "New +" → "Static Site"
+2. Click "New +" → "Web Service"
 3. Connect your GitHub repository
 4. Configure:
    - **Name**: `evento-frontend`
    - **Root Directory**: `client`
+   - **Environment**: `Node`
    - **Build Command**: `npm install && npm run build`
-   - **Publish Directory**: `dist`
-5. Add environment variable:
+   - **Start Command**: `node server.js`
+5. Add environment variables:
    - `VITE_API_URL` - Set to `https://evento-api.onrender.com/api` (use your actual backend URL)
-6. Click "Create Static Site"
+   - `NODE_ENV=production`
+   - `PORT=10000` (Render sets this automatically)
+6. Click "Create Web Service"
 
 ## Environment Variables
 

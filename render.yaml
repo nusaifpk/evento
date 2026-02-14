@@ -20,14 +20,21 @@ services:
         value: 10000
     healthCheckPath: /api/health
 
-  # Frontend Static Site
+  # Frontend Web Service
   - type: web
     name: evento-frontend
-    env: static
+    env: node
+    region: oregon
+    plan: free
     buildCommand: cd client && npm install && npm run build
-    staticPublishPath: client/dist
+    startCommand: node server.js
+    rootDir: client
     envVars:
+      - key: NODE_ENV
+        value: production
       - key: VITE_API_URL
         value: https://evento-api.onrender.com/api
         sync: false  # Update this after backend is deployed
+      - key: PORT
+        value: 10000
 
