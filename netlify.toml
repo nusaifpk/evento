@@ -8,7 +8,16 @@
   # Node version
   NODE_VERSION = "20"
 
+# IMPORTANT: API routes must be handled BEFORE the catch-all redirect
+# If you have a backend deployed, uncomment and set the backend URL:
+# [[redirects]]
+#   from = "/api/*"
+#   to = "https://your-backend-url.com/api/:splat"
+#   status = 200
+#   force = true
+
 # Redirect all routes to index.html for SPA routing (React Router)
+# This will NOT match /api/* because Netlify processes more specific rules first
 [[redirects]]
   from = "/*"
   to = "/index.html"

@@ -43,6 +43,14 @@ export const getNearbyEvents = async (
       `${API_BASE_URL}/events/nearby?lat=${lat}&lng=${lng}`
     );
 
+    // Check if response is HTML (means we got redirected to index.html)
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('text/html')) {
+      throw new Error(
+        'API endpoint not found. Please configure VITE_API_URL environment variable to point to your backend server.'
+      );
+    }
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -56,6 +64,12 @@ export const getNearbyEvents = async (
     return result.data;
   } catch (error) {
     console.error('Error fetching nearby events:', error);
+    // Re-throw with more context if it's a JSON parse error
+    if (error instanceof SyntaxError && error.message.includes('JSON')) {
+      throw new Error(
+        'Backend API not configured. Please set VITE_API_URL environment variable in Netlify to your backend URL.'
+      );
+    }
     throw error;
   }
 };
@@ -66,6 +80,14 @@ export const getNearbyEvents = async (
 export const getEventById = async (id: string): Promise<ApiEvent> => {
   try {
     const response = await fetch(`${API_BASE_URL}/events/${id}`);
+
+    // Check if response is HTML (means we got redirected to index.html)
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('text/html')) {
+      throw new Error(
+        'API endpoint not found. Please configure VITE_API_URL environment variable to point to your backend server.'
+      );
+    }
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -80,6 +102,12 @@ export const getEventById = async (id: string): Promise<ApiEvent> => {
     return result.data;
   } catch (error) {
     console.error('Error fetching event:', error);
+    // Re-throw with more context if it's a JSON parse error
+    if (error instanceof SyntaxError && error.message.includes('JSON')) {
+      throw new Error(
+        'Backend API not configured. Please set VITE_API_URL environment variable in Netlify to your backend URL.'
+      );
+    }
     throw error;
   }
 };

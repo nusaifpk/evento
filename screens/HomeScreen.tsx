@@ -107,13 +107,31 @@ export const HomeScreen = () => {
   }
 
   if (error) {
+    const isApiConfigError = error.includes('VITE_API_URL') || error.includes('Backend API not configured');
+    
     return (
       <div className="bg-background-dark text-white font-display min-h-screen pb-24 flex items-center justify-center">
-        <div className="text-center px-6">
-          <p className="text-red-400 mb-4">{error}</p>
+        <div className="text-center px-6 max-w-md">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold mb-2 text-red-400">Connection Error</h2>
+            <p className="text-gray-300 mb-4">{error}</p>
+            {isApiConfigError && (
+              <div className="bg-surface-dark border border-primary/20 rounded-xl p-4 mb-4 text-left">
+                <p className="text-sm text-gray-400 mb-2">
+                  <strong className="text-primary">To fix this:</strong>
+                </p>
+                <ol className="text-xs text-gray-400 space-y-1 list-decimal list-inside">
+                  <li>Deploy your backend (Express server) to Railway, Render, or similar</li>
+                  <li>In Netlify dashboard, go to Site settings → Environment variables</li>
+                  <li>Add <code className="bg-black/30 px-1 rounded">VITE_API_URL</code> with your backend URL</li>
+                  <li>Redeploy your site</li>
+                </ol>
+              </div>
+            )}
+          </div>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-primary rounded-lg text-white font-semibold"
+            className="px-6 py-3 bg-primary hover:bg-primary/90 rounded-xl text-white font-semibold transition-colors"
           >
             Retry
           </button>
