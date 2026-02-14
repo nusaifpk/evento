@@ -13,6 +13,8 @@
   NODE_VERSION = "20"
 
 # Redirect rules - SPA fallback
+# Netlify automatically serves static files (CSS, JS, images, etc.)
+# This redirect only applies to routes that don't match actual files
 [[redirects]]
   from = "/*"
   to = "/index.html"

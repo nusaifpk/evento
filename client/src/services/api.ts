@@ -4,7 +4,8 @@ import type { ApiEvent } from '../types/event.types';
 // Re-export ApiEvent for convenience
 export type { ApiEvent };
 
-const API_BASE_URL = '/api';
+// Use environment variable for API URL, fallback to /api for development
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 export interface NearbyEventsResponse {
   success: boolean;
