@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Trash2, Edit, Plus, ArrowLeft, Calendar, MapPin, DollarSign } from 'lucide-react';
 import type { ApiEvent } from '../types/event.types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = '/api';
 
 export const AdminScreen = () => {
   const navigate = useNavigate();

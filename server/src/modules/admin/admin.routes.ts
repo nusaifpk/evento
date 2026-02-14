@@ -10,9 +10,9 @@ const router = Router();
  * @desc    Get all events (admin view)
  * @access  Admin
  */
-router.get('/events', (req, res) => {
+router.get('/events', (req, res, next) => {
   console.log('[Admin Routes] GET /events called');
-  getAllEvents(req, res);
+  getAllEvents(req, res, next);
 });
 
 /**

@@ -1,0 +1,33 @@
+# Render Blueprint Configuration for Evento
+# This file defines services for Render deployment
+
+services:
+  # Backend API Service
+  - type: web
+    name: evento-api
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd server && npm install && npm run build
+    startCommand: cd server && npm run start
+    rootDir: server
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false  # Set this in Render dashboard
+      - key: PORT
+        value: 10000
+    healthCheckPath: /api/health
+
+  # Frontend Static Site
+  - type: web
+    name: evento-frontend
+    env: static
+    buildCommand: cd client && npm install && npm run build
+    staticPublishPath: client/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://evento-api.onrender.com/api
+        sync: false  # Update this after backend is deployed
+

@@ -4,9 +4,7 @@ import type { ApiEvent } from '../types/event.types';
 // Re-export ApiEvent for convenience
 export type { ApiEvent };
 
-// Use environment variable for API URL, fallback to /api (works for both local and Netlify)
-// On Netlify, /api routes are redirected to the function, so /api works
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = '/api';
 
 export interface NearbyEventsResponse {
   success: boolean;
