@@ -1,6 +1,6 @@
 [build]
-  # Build command - npm ci installs all dependencies including devDependencies
-  command = "npm ci && npm run build"
+  # Build command - install dependencies and build
+  command = "npm install && npm run build"
   # Directory to publish (Vite's default output)
   publish = "dist"
 
@@ -17,7 +17,6 @@
 #   force = true
 
 # Redirect all routes to index.html for SPA routing (React Router)
-# This will NOT match /api/* because Netlify processes more specific rules first
 [[redirects]]
   from = "/*"
   to = "/index.html"
