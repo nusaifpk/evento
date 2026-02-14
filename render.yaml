@@ -14,8 +14,7 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: MONGODB_URI
-        sync: false  # Set this in Render dashboard
+      # MONGODB_URI - Set this manually in Render dashboard
       - key: PORT
         value: 10000
     healthCheckPath: /api/health
@@ -32,9 +31,7 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: VITE_API_URL
-        value: https://evento-api.onrender.com/api
-        sync: false  # Update this after backend is deployed
+      # VITE_API_URL - Update this after backend is deployed (e.g., https://evento-api.onrender.com/api)
       - key: PORT
         value: 10000
 
