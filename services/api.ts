@@ -1,4 +1,5 @@
-const API_BASE_URL = '/api';
+// Use environment variable for production API URL, or default to relative path for dev
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 export interface ApiEvent {
   _id: string;

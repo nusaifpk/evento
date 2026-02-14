@@ -1,0 +1,29 @@
+[build]
+  # Build command - npm ci installs all dependencies including devDependencies
+  command = "npm ci && npm run build"
+  # Directory to publish (Vite's default output)
+  publish = "dist"
+
+[build.environment]
+  # Node version
+  NODE_VERSION = "20"
+
+# Redirect all routes to index.html for SPA routing (React Router)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers for security and performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
