@@ -2,7 +2,8 @@
 
 [build]
   # Build command for the client
-  command = "cd client && npm install && npm run build"
+  # Install all dependencies including devDependencies (required for TypeScript and Vite)
+  command = "cd client && npm install --include=dev && npm run build"
   # Directory containing the built files
   publish = "client/dist"
   # Functions directory (if using Netlify Functions)
