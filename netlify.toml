@@ -1,12 +1,14 @@
 [build]
-  # Build command - install dependencies and build
-  command = "npm install && npm run build"
+  # Build command - explicitly install devDependencies (needed for vite)
+  command = "npm install --include=dev && npm run build"
   # Directory to publish (Vite's default output)
   publish = "dist"
 
 [build.environment]
   # Node version
   NODE_VERSION = "20"
+  # Ensure devDependencies are installed
+  NPM_CONFIG_PRODUCTION = "false"
 
 # IMPORTANT: API routes must be handled BEFORE the catch-all redirect
 # If you have a backend deployed, uncomment and set the backend URL:
