@@ -7,7 +7,7 @@
     "dev": "cd client && vite",
     "server": "tsx server/src/server.ts",
     "client": "cd client && npm run dev",
-    "build": "cd client && npm run build",
+    "build": "cd client && npm install && npm run build",
     "preview": "cd client && npm run preview",
     "seed": "tsx server/src/events.seed.ts",
     "install:all": "npm install && cd client && npm install && cd ../server && npm install"
