@@ -1,9 +1,9 @@
 # Netlify Configuration for Evento
 
 [build]
-  # Build command for the client
-  # Install all dependencies including devDependencies (required for TypeScript and Vite)
-  command = "cd client && npm install --include=dev && npm run build"
+  # Build command - build client and install function dependencies
+  # Also install server dependencies needed by the function
+  command = "cd client && npm install --include=dev && npm run build && cd ../netlify/functions && npm install && cd ../../server && npm install"
   # Directory containing the built files
   publish = "client/dist"
   # Functions directory (if using Netlify Functions)
@@ -11,6 +11,13 @@
 
 [build.environment]
   NODE_VERSION = "20"
+
+# Redirect API routes to Netlify Function
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
 
 # Redirect rules - SPA fallback
 # Netlify automatically serves static files (CSS, JS, images, etc.)
