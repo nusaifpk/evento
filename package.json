@@ -8,9 +8,6 @@
     "server": "tsx server/src/server.ts",
     "client": "cd client && npm run dev",
     "build": "cd client && npm run build",
-    "build:all": "cd client && npm run build",
-    "build:server": "cd server && npm run build && cd ..",
-    "start:prod": "node server/dist/server.prod.js",
     "preview": "cd client && npm run preview",
     "seed": "tsx server/src/events.seed.ts",
     "install:all": "npm install && cd client && npm install && cd ../server && npm install"
