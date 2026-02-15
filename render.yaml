@@ -4,7 +4,7 @@ services:
     name: evento
     env: node
     plan: free
-    buildCommand: npm run install:all && npm run build:all && npm run build:server
+    buildCommand: npm run install:all && cd client && npx vite build && cd .. && npm run build:server
     startCommand: npm run start:prod
     healthCheckPath: /api/health
     envVars:
