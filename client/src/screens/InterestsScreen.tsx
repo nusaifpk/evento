@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Music, Beer, Terminal, Palette, Utensils, Circle, Gamepad2, Mountain, Check, ArrowRight } from 'lucide-react';
+import { getUserPreferences, saveUserPreferences, updateUserInterests } from '../utils/userManager';
 
 const INTERESTS = [
   { id: 'music', name: 'Music', sub: 'Concerts & Gigs', icon: Music },
@@ -15,12 +16,47 @@ const INTERESTS = [
 
 export const InterestsScreen = () => {
   const navigate = useNavigate();
-  const [selected, setSelected] = useState<string[]>(['music', 'tech', 'sports']);
+  const [selected, setSelected] = useState<string[]>([]);
+
+  // Load existing preferences on component mount
+  useEffect(() => {
+    const preferences = getUserPreferences();
+    if (preferences && preferences.interests.length > 0) {
+      setSelected(preferences.interests);
+    } else {
+      // Set default interests for new users
+      setSelected(['music', 'tech', 'sports']);
+    }
+  }, []);
 
   const toggleInterest = (id: string) => {
     setSelected((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
+  };
+
+  const handleContinue = () => {
+    // Save user preferences
+    const preferences = getUserPreferences();
+    if (preferences) {
+      updateUserInterests(selected);
+    } else {
+      saveUserPreferences(selected);
+    }
+    
+    navigate('/home');
+  };
+
+  const handleSkip = () => {
+    // Save current selection even when skipping
+    const preferences = getUserPreferences();
+    if (preferences) {
+      updateUserInterests(selected);
+    } else {
+      saveUserPreferences(selected);
+    }
+    
+    navigate('/home');
   };
 
   return (
@@ -34,7 +70,7 @@ export const InterestsScreen = () => {
           <div className="h-full w-2/3 bg-primary rounded-full"></div>
         </div>
         <button 
-            onClick={() => navigate('/home')}
+            onClick={handleSkip}
             className="text-sm font-semibold text-slate-400 hover:text-primary transition-colors">
           Skip
         </button>
@@ -92,7 +128,7 @@ export const InterestsScreen = () => {
         <div className="h-20 bg-gradient-to-t from-background-dark to-transparent pointer-events-none"></div>
         <div className="bg-background-dark/95 backdrop-blur-lg px-6 pb-8 pt-2">
           <button
-            onClick={() => navigate('/home')}
+            onClick={handleContinue}
             className="w-full bg-primary hover:bg-primary/90 text-white font-bold text-lg py-4 rounded-xl shadow-[0_0_25px_rgba(244,37,244,0.4)] transition-all transform active:scale-[0.98] flex items-center justify-center gap-2"
           >
             Continue

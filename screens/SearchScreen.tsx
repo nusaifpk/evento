@@ -84,7 +84,7 @@ export const SearchScreen = () => {
             
              <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-background-dark via-background-dark to-transparent z-30">
                 <button className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary/30 flex items-center justify-center gap-2 transform active:scale-[0.98] transition-all">
-                    <span>Show 24 Events</span>
+                    <span>Show Events</span>
                     <ArrowRight size={16} />
                 </button>
             </div>

@@ -2,21 +2,13 @@
 import { INDIAN_CITIES } from './constants';
 
 /**
- * Format price based on location
- * Uses ₹ for Indian cities, $ for others
+ * Format price with Indian Rupee symbol
  */
 export const formatPrice = (price: number, city?: string): string => {
   if (price === 0) return 'Free';
   
-  // Check if city is in India
-  const isIndianCity = city && INDIAN_CITIES.some(indianCity => 
-    city.toLowerCase().includes(indianCity.toLowerCase())
-  );
-  
-  // Use appropriate currency symbol
-  const currency = isIndianCity ? '₹' : '$';
-  
-  return `${currency}${price.toFixed(0)}`;
+  // Always use Indian Rupee symbol
+  return `₹${price.toFixed(0)}`;
 };
 
 /**

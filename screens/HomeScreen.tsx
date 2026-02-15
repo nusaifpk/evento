@@ -20,43 +20,120 @@ export const HomeScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [useLocation, setUseLocation] = useState(true);
+  const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number }>({
     lat: DEFAULT_LAT,
     lng: DEFAULT_LNG,
   });
-  const [currentLocationName, setCurrentLocationName] = useState<string>('Default Location');
+  const [currentLocationName, setCurrentLocationName] = useState<string>('Getting location...');
 
-  useEffect(() => {
-    // Try to get user's location only if location is enabled
-    if (useLocation && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-          setCurrentLocationName('Your Location');
-        },
-        () => {
-          // Use default location if geolocation fails
-          console.log('Geolocation failed, using default location');
-          setUseLocation(false);
-          setUserLocation({
-            lat: DEFAULT_LAT,
-            lng: DEFAULT_LNG,
-          });
-          setCurrentLocationName('Bangalore (Default)');
+  const reverseGeocode = async (lat: number, lng: number) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+        { 
+          headers: { 
+            'User-Agent': 'Evento App (evento@example.com)' 
+          } 
         }
       );
-    } else {
-      // Use default location when location is disabled
-      setUserLocation({
-        lat: DEFAULT_LAT,
-        lng: DEFAULT_LNG,
-      });
-      setCurrentLocationName('Bangalore (Default)');
+      
+      if (response.ok) {
+        const data = await response.json();
+        const cityName = data.address?.city || data.address?.town || data.address?.village || 'Your Area';
+        setCurrentLocationName(cityName);
+      }
+    } catch (error) {
+      console.log('Error getting location name:', error);
+      // Keep "Your Location" if reverse geocoding fails
     }
-  }, [useLocation]);
+  };
+
+  useEffect(() => {
+    // Request location permission immediately when component mounts
+    const requestLocationPermission = async () => {
+      if (!navigator.geolocation) {
+        console.log('Geolocation not supported');
+        setUseLocation(false);
+        setCurrentLocationName('Bangalore (Default)');
+        return;
+      }
+
+      // Check if permission is already granted
+      if ('permissions' in navigator) {
+        try {
+          const result = await navigator.permissions.query({ name: 'geolocation' });
+          setLocationPermission(result.state as 'granted' | 'denied' | 'prompt');
+          
+          if (result.state === 'granted') {
+            // Permission already granted, get location
+            getCurrentLocation();
+          } else if (result.state === 'denied') {
+            // Permission denied, use default location
+            setUseLocation(false);
+            setCurrentLocationName('Bangalore (Default)');
+          } else {
+            // Permission not yet decided, request it
+            getCurrentLocation();
+          }
+
+          // Listen for permission changes
+          result.addEventListener('change', () => {
+            setLocationPermission(result.state as 'granted' | 'denied' | 'prompt');
+            if (result.state === 'granted') {
+              getCurrentLocation();
+            } else if (result.state === 'denied') {
+              setUseLocation(false);
+              setCurrentLocationName('Bangalore (Default)');
+            }
+          });
+        } catch (error) {
+          console.log('Error checking geolocation permission:', error);
+          getCurrentLocation(); // Fallback to direct request
+        }
+      } else {
+        // Fallback for browsers that don't support permissions API
+        getCurrentLocation();
+      }
+    };
+
+    const getCurrentLocation = () => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ lat: latitude, lng: longitude });
+          setCurrentLocationName('Your Location');
+          setUseLocation(true);
+          setLocationPermission('granted');
+          
+          // Get location name using reverse geocoding
+          reverseGeocode(latitude, longitude);
+        },
+        (error) => {
+          console.log('Geolocation error:', error);
+          setUseLocation(false);
+          setCurrentLocationName('Bangalore (Default)');
+          setLocationPermission('denied');
+          
+          // Show user-friendly message based on error
+          if (error.code === error.PERMISSION_DENIED) {
+            console.log('Location permission denied by user');
+          } else if (error.code === error.POSITION_UNAVAILABLE) {
+            console.log('Location information unavailable');
+          } else if (error.code === error.TIMEOUT) {
+            console.log('Location request timed out');
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000, // 5 minutes
+        }
+      );
+    };
+
+    requestLocationPermission();
+  }, []);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -122,9 +199,45 @@ export const HomeScreen = () => {
     );
   }
 
-  const toggleLocation = () => {
-    setUseLocation(!useLocation);
-    setLoading(true);
+  const toggleLocation = async () => {
+    if (!useLocation) {
+      // User wants to enable location - request permission
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            setUserLocation({ lat: latitude, lng: longitude });
+            setCurrentLocationName('Your Location');
+            setUseLocation(true);
+            setLocationPermission('granted');
+            setLoading(true);
+            
+            // Get location name using reverse geocoding
+            reverseGeocode(latitude, longitude);
+          },
+          (error) => {
+            console.log('Location permission denied or error:', error);
+            // Keep current state if permission denied
+            if (error.code === error.PERMISSION_DENIED) {
+              alert('Location permission is required to show events near you. Please enable location access in your browser settings.');
+            }
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000,
+          }
+        );
+      } else {
+        alert('Geolocation is not supported by your browser');
+      }
+    } else {
+      // User wants to disable location
+      setUseLocation(false);
+      setUserLocation({ lat: DEFAULT_LAT, lng: DEFAULT_LNG });
+      setCurrentLocationName('Bangalore (Default)');
+      setLoading(true);
+    }
   };
 
   if (events.length === 0 && !loading) {

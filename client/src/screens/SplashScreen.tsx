@@ -1,13 +1,22 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logoicon from '../assets/logoicon.png';
+import { getUserId, hasCompletedOnboarding } from '../utils/userManager';
 
 export const SplashScreen = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Generate/get user ID
+    getUserId();
+
     const timer = setTimeout(() => {
-      navigate('/interests');
+      // Check if user has completed onboarding
+      if (hasCompletedOnboarding()) {
+        navigate('/home');
+      } else {
+        navigate('/interests');
+      }
     }, 2500);
     return () => clearTimeout(timer);
   }, [navigate]);

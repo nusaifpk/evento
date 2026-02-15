@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Music, MapPin, LocateFixed, Monitor, Settings, Flame, Palette, Star } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { getAllEvents, type ApiEvent, formatPrice } from '../services/api';
 import 'leaflet/dist/leaflet.css';
@@ -28,7 +28,22 @@ const createEventIcon = (imageUrl: string, eventId: string) => {
     `,
     iconSize: [48, 48],
     iconAnchor: [24, 24],
-    popupAnchor: [0, -24],
+  });
+};
+
+// Custom blue icon for user's current location
+const createLocationIcon = () => {
+  return L.divIcon({
+    className: 'custom-location-marker',
+    html: `
+      <div class="location-marker-container">
+        <div class="location-marker-pulse"></div>
+        <div class="location-marker-dot"></div>
+        <div class="location-marker-ring"></div>
+      </div>
+    `,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
   });
 };
 
@@ -48,6 +63,8 @@ export const MapScreen = () => {
   const [selectedEvent, setSelectedEvent] = useState<ApiEvent | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number]>([12.9716, 77.5946]); // Bangalore default
   const [mapZoom, setMapZoom] = useState(13);
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
+  const [locating, setLocating] = useState(false);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -75,19 +92,104 @@ export const MapScreen = () => {
     fetchEvents();
   }, []);
 
-  // Get user location
+  // Get user location and place name
   const handleLocateUser = () => {
     if (navigator.geolocation) {
+      setLocating(true);
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const { latitude, longitude } = position.coords;
+          
+          try {
+            // Get place name using Nominatim reverse geocoding
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+              {
+                headers: {
+                  'User-Agent': 'Evento App (evento@example.com)'
+                }
+              }
+            );
+            
+            if (response.ok) {
+              const data = await response.json();
+              let placeName = 'Current Location';
+              
+              // Extract meaningful place name
+              if (data.display_name) {
+                // Use the full display name for accuracy
+                placeName = data.display_name;
+              } else if (data.address) {
+                const address = data.address;
+                // Build place name from address components
+                const parts = [];
+                if (address.road || address.pedestrian) parts.push(address.road || address.pedestrian);
+                if (address.suburb || address.neighbourhood) parts.push(address.suburb || address.neighbourhood);
+                if (address.city || address.town || address.village) parts.push(address.city || address.town || address.village);
+                if (address.state) parts.push(address.state);
+                if (address.country) parts.push(address.country);
+                
+                placeName = parts.join(', ') || 'Current Location';
+              }
+              
+              setCurrentLocation({
+                lat: latitude,
+                lng: longitude,
+                name: placeName
+              });
+              
+              console.log('Location found:', placeName);
+            } else {
+              // Fallback to coordinates if geocoding fails
+              setCurrentLocation({
+                lat: latitude,
+                lng: longitude,
+                name: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
+              });
+            }
+          } catch (error) {
+            console.error('Error getting place name:', error);
+            // Fallback to coordinates
+            setCurrentLocation({
+              lat: latitude,
+              lng: longitude,
+              name: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
+            });
+          }
+          
+          // Center map on user location
           setMapCenter([latitude, longitude]);
-          setMapZoom(15);
+          setMapZoom(16);
+          setLocating(false);
         },
         (error) => {
           console.error('Error getting user location:', error);
+          setLocating(false);
+          
+          // Show user-friendly error message
+          let errorMessage = 'Unable to get your location';
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Location access denied. Please enable location services.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Location information unavailable.';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Location request timed out.';
+              break;
+          }
+          
+          alert(errorMessage);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000 // Accept cached location up to 1 minute old
         }
       );
+    } else {
+      alert('Geolocation is not supported by your browser');
     }
   };
 
@@ -132,19 +234,17 @@ export const MapScreen = () => {
                       setSelectedEvent(event);
                     },
                   }}
-                >
-                  <Popup>
-                    <div className="text-black p-2">
-                      <h3 className="font-bold text-sm mb-1">{event.title}</h3>
-                      <p className="text-xs text-gray-600">{event.address}</p>
-                      <p className="text-xs text-primary font-semibold mt-1">
-                        {formatPrice(event.price, event.city)}
-                      </p>
-                    </div>
-                  </Popup>
-                </Marker>
+                />
               );
             })}
+            
+            {/* User Current Location Marker */}
+            {currentLocation && (
+              <Marker
+                position={[currentLocation.lat, currentLocation.lng]}
+                icon={createLocationIcon()}
+              />
+            )}
           </MapContainer>
         )}
       </div>
@@ -186,17 +286,26 @@ export const MapScreen = () => {
         <div className="flex-1"></div>
 
         {/* Bottom Floating Card */}
-        <div className="px-4 pb-24 flex flex-col items-end gap-4 pointer-events-auto bg-gradient-to-t from-black/90 via-black/40 to-transparent">
+        <div className="px-4 pb-32 flex flex-col items-end gap-4 pointer-events-auto bg-gradient-to-t from-black/90 via-black/40 to-transparent">
           <button 
             onClick={handleLocateUser}
-            className="h-12 w-12 rounded-full bg-surface-dark/80 backdrop-blur-xl border border-white/10 text-white shadow-lg flex items-center justify-center hover:bg-surface-dark transition-colors active:scale-90 pointer-events-auto"
+            disabled={locating}
+            className={`h-12 w-12 rounded-full border text-white shadow-lg flex items-center justify-center transition-all active:scale-90 pointer-events-auto ${
+              locating 
+                ? 'bg-surface-dark/60 border-white/20 animate-pulse' 
+                : 'bg-surface-dark/80 backdrop-blur-xl border-white/10 hover:bg-surface-dark'
+            }`}
           >
-            <LocateFixed className="text-primary" size={20} />
+            {locating ? (
+              <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <LocateFixed className="text-primary" size={20} />
+            )}
           </button>
 
           {selectedEvent ? (
             <div 
-              className="relative w-full bg-surface-dark/80 backdrop-blur-xl border border-white/10 rounded-2xl p-3 shadow-2xl flex gap-3 transition-transform duration-300 transform cursor-pointer pointer-events-auto" 
+              className="relative w-full bg-surface-dark/80 backdrop-blur-xl border border-white/10 rounded-2xl p-3 shadow-2xl flex gap-3 transition-transform duration-300 transform pointer-events-auto" 
               onClick={() => navigate(`/event/${selectedEvent._id}`)}
             >
               <div className="absolute -inset-[1px] bg-gradient-to-r from-primary/30 to-transparent rounded-2xl -z-10 blur-sm"></div>
@@ -304,9 +413,68 @@ export const MapScreen = () => {
           background-color: #121212;
         }
         
-        .leaflet-popup-content-wrapper {
-          background: white;
-          border-radius: 8px;
+        /* Blue Location Marker Styles */
+        .custom-location-marker {
+          background: transparent !important;
+          border: none !important;
+        }
+        
+        .location-marker-container {
+          position: relative;
+          width: 24px;
+          height: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .location-marker-pulse {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: rgba(59, 130, 246, 0.4);
+          animation: location-pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .location-marker-ring {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          border: 3px solid white;
+          background: rgba(59, 130, 246, 0.2);
+          box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+        
+        .location-marker-dot {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #3B82F6;
+          box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+          z-index: 2;
+        }
+        
+        @keyframes location-pulse-ring {
+          0% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(2);
+            opacity: 0;
+          }
         }
       `}</style>
     </div>
