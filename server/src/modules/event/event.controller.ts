@@ -7,7 +7,7 @@ interface NearbyEventsQuery {
 }
 
 /**
- * Get events within 20km radius of given coordinates
+ * Get events within 20km radius of given coordinates (only approved)
  * Sorted by distance (nearest first)
  */
 export const getNearbyEvents = async (
@@ -47,8 +47,9 @@ export const getNearbyEvents = async (
     // 20km radius in meters
     const radiusInMeters = 20 * 1000;
 
-    // Geospatial query using $near
+    // Geospatial query using $near - only approved events
     const events = await Event.find({
+      status: 'approved',
       location: {
         $near: {
           $geometry: {
@@ -77,16 +78,16 @@ export const getNearbyEvents = async (
 };
 
 /**
- * Get all events from database
+ * Get all events from database (only approved)
  */
 export const getAllEvents = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const events = await Event.find()
+    const events = await Event.find({ status: 'approved' })
       .select('-__v')
-      .sort({ startDate: 1 }) // Sort by start date ascending
+      .sort({ createdAt: -1 }) // Sort by creation date descending (newest first)
       .lean();
 
     res.status(200).json({
@@ -104,7 +105,138 @@ export const getAllEvents = async (
 };
 
 /**
- * Get event by ID
+ * Submit event for approval (public route)
+ */
+export const submitEvent = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const {
+      title,
+      description,
+      category,
+      address,
+      city,
+      latitude,
+      longitude,
+      startDate,
+      endDate,
+      price,
+      imageUrl,
+      organizerName,
+      ticketLink,
+    } = req.body;
+
+    // Validate required fields
+    if (!title || !description || !category || !address || !city) {
+      res.status(400).json({
+        success: false,
+        error: 'Missing required fields: title, description, category, address, city',
+      });
+      return;
+    }
+
+    if (latitude === undefined || longitude === undefined) {
+      res.status(400).json({
+        success: false,
+        error: 'Latitude and longitude are required',
+      });
+      return;
+    }
+
+    if (!startDate || !endDate) {
+      res.status(400).json({
+        success: false,
+        error: 'Start date and end date are required',
+      });
+      return;
+    }
+
+    // Validate coordinates
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+
+    if (
+      isNaN(lat) ||
+      isNaN(lng) ||
+      lat < -90 ||
+      lat > 90 ||
+      lng < -180 ||
+      lng > 180
+    ) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid coordinates',
+      });
+      return;
+    }
+
+    // Validate dates
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (end <= start) {
+      res.status(400).json({
+        success: false,
+        error: 'End date must be after start date',
+      });
+      return;
+    }
+
+    // Create event with pending status
+    const event = new Event({
+      title,
+      description,
+      category,
+      location: {
+        type: 'Point',
+        coordinates: [lng, lat], // [longitude, latitude]
+      },
+      address,
+      city,
+      startDate: start,
+      endDate: end,
+      price: price || 0,
+      images: imageUrl ? [imageUrl] : [],
+      organizerName: organizerName || 'Community Member',
+      status: 'pending',
+    });
+
+    await event.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Event submitted successfully. It will be reviewed by an admin.',
+      data: {
+        id: event._id,
+        title: event.title,
+        status: event.status,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error submitting event:', error);
+    
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map((err: any) => err.message);
+      res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        messages,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Failed to submit event',
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * Get event by ID (only approved)
  */
 export const getEventById = async (
   req: Request<{ id: string }>,
@@ -121,7 +253,9 @@ export const getEventById = async (
       return;
     }
 
-    const event = await Event.findById(id).select('-__v').lean();
+    const event = await Event.findOne({ _id: id, status: 'approved' })
+      .select('-__v')
+      .lean();
 
     if (!event) {
       res.status(404).json({

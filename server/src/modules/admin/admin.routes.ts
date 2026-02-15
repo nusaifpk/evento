@@ -7,29 +7,116 @@ const router = Router();
 
 /**
  * @route   GET /api/admin/events
- * @desc    Get all events (admin view)
+ * @desc    Get all approved events (admin view)
  * @access  Admin
  */
-router.get('/events', (req, res) => {
-  console.log('[Admin Routes] GET /events called');
-  getAllEvents(req, res);
+router.get('/events', async (req: Request, res: Response) => {
+  try {
+    // Admin can see all approved events
+    const events = await Event.find({ status: 'approved' })
+      .select('-__v')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.status(200).json({
+      success: true,
+      count: events.length,
+      data: events,
+    });
+  } catch (error) {
+    console.error('Error fetching approved events:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch events',
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/events/pending
+ * @desc    Get all pending events
+ * @access  Admin
+ */
+router.get('/events/pending', async (req: Request, res: Response) => {
+  try {
+    const events = await Event.find({ status: 'pending' })
+      .select('-__v')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.status(200).json({
+      success: true,
+      count: events.length,
+      data: events,
+    });
+  } catch (error) {
+    console.error('Error fetching pending events:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch pending events',
+    });
+  }
 });
 
 /**
  * @route   GET /api/admin/events/:id
- * @desc    Get event by ID (admin view)
+ * @desc    Get event by ID (admin view - can see any status)
  * @access  Admin
  */
-router.get('/events/:id', getEventById);
+router.get('/events/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Event ID is required',
+      });
+    }
+
+    // Admin can see events of any status
+    const event = await Event.findById(id).select('-__v').lean();
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        error: 'Event not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: event,
+    });
+  } catch (error: any) {
+    console.error('Error fetching event:', error);
+    
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid event ID format',
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch event',
+    });
+  }
+});
 
 /**
  * @route   POST /api/admin/events
- * @desc    Create new event
+ * @desc    Create new event (auto-approved)
  * @access  Admin
  */
 router.post('/events', async (req: Request, res: Response) => {
   try {
-    const event = new Event(req.body);
+    const eventData = {
+      ...req.body,
+      status: 'approved', // Admin-created events are auto-approved
+    };
+    const event = new Event(eventData);
     await event.save();
     res.status(201).json({
       success: true,
@@ -108,6 +195,78 @@ router.put('/events/:id', async (req: Request, res: Response) => {
     res.status(400).json({
       success: false,
       error: 'Failed to update event',
+      message: error.message,
+    });
+  }
+});
+
+/**
+ * @route   PATCH /api/admin/events/:id/approve
+ * @desc    Approve pending event
+ * @access  Admin
+ */
+router.patch('/events/:id/approve', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const event = await Event.findByIdAndUpdate(
+      id,
+      { status: 'approved' },
+      { new: true }
+    );
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        error: 'Event not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Event approved successfully',
+      data: event,
+    });
+  } catch (error: any) {
+    console.error('Error approving event:', error);
+    res.status(400).json({
+      success: false,
+      error: 'Failed to approve event',
+      message: error.message,
+    });
+  }
+});
+
+/**
+ * @route   PATCH /api/admin/events/:id/reject
+ * @desc    Reject pending event
+ * @access  Admin
+ */
+router.patch('/events/:id/reject', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const event = await Event.findByIdAndUpdate(
+      id,
+      { status: 'rejected' },
+      { new: true }
+    );
+
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        error: 'Event not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Event rejected successfully',
+      data: event,
+    });
+  } catch (error: any) {
+    console.error('Error rejecting event:', error);
+    res.status(400).json({
+      success: false,
+      error: 'Failed to reject event',
       message: error.message,
     });
   }

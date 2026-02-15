@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx src/server.ts",
-    "seed": "tsx src/events.seed.ts"
+    "seed": "tsx src/events.seed.ts",
+    "clear": "tsx clear-db.ts"
   },
   "dependencies": {
     "express": "^4.18.2",

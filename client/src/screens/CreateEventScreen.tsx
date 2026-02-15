@@ -149,20 +149,12 @@ export const CreateEventScreen = () => {
   };
 
   return (
-    <div className="bg-background-dark text-white font-display min-h-screen pb-24">
+    <div>
       {/* Header */}
-      <header className="px-6 pt-12 pb-6 flex items-center gap-4">
-        <button
-          onClick={() => navigate('/admin')}
-          className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-        >
-          <ArrowLeft size={24} />
-        </button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-extrabold">Create New Event</h1>
-          <p className="text-sm text-gray-400 mt-1">Add a new event to the database</p>
-        </div>
-      </header>
+      <div className="mb-8">
+        <h1 className="text-4xl font-extrabold mb-2">Create New Event</h1>
+        <p className="text-gray-400">Add a new event to the database (auto-approved)</p>
+      </div>
 
       {error && (
         <div className="mx-6 mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
@@ -171,7 +163,7 @@ export const CreateEventScreen = () => {
       )}
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="px-6 space-y-6 pb-8">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Title */}
         <div>
           <label className="block text-sm font-semibold mb-2">

@@ -23,7 +23,8 @@ export const BottomNav = () => {
             <button
               key={item.path}
               className="relative flex flex-col items-center justify-center w-16 h-16 -mt-8 bg-primary rounded-full text-white shadow-lg shadow-primary/40 border-4 border-background-dark active:scale-95 transition-transform"
-              onClick={() => console.log('Create Event')}
+              onClick={() => navigate('/submit-event')}
+              aria-label="Submit Event"
             >
               <item.icon size={24} />
             </button>

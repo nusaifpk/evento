@@ -15,6 +15,7 @@ export interface IEvent extends Document {
   price: number;
   images: string[];
   organizerName: string;
+  status: 'pending' | 'approved' | 'rejected';
   createdAt: Date;
 }
 
@@ -116,13 +117,18 @@ const EventSchema = new Schema<IEvent>(
       required: [true, 'Organizer name is required'],
       trim: true,
     },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending',
+    },
     createdAt: {
       type: Date,
       default: Date.now,
     },
   },
   {
-    timestamps: false, // We're using createdAt explicitly
+    timestamps: true, // Enable timestamps (createdAt, updatedAt)
   }
 );
 
@@ -133,6 +139,7 @@ EventSchema.index({ location: '2dsphere' });
 EventSchema.index({ startDate: 1 });
 EventSchema.index({ category: 1 });
 EventSchema.index({ city: 1 });
+EventSchema.index({ status: 1 }); // Index for status filtering
 
 export const Event = mongoose.model<IEvent>('Event', EventSchema);
 

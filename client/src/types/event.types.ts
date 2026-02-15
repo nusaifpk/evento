@@ -14,6 +14,7 @@ export interface ApiEvent {
   price: number;
   images: string[];
   organizerName: string;
+  status?: 'pending' | 'approved' | 'rejected';
   createdAt: string;
 }
 
