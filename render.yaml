@@ -1,0 +1,32 @@
+services:
+  # Production Web Service
+  - type: web
+    name: evento
+    env: node
+    plan: free
+    buildCommand: npm run build:all && npm run build:server
+    startCommand: npm run start:prod
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    # Install dependencies in both root and client/server directories
+    buildFilter:
+      paths:
+        - package.json
+        - server/package.json
+        - client/package.json
+        - server/src/**
+        - client/src/**
+        - client/index.html
+        - client/vite.config.ts
+    # Auto-deploy on push to main branch
+    autoDeploy: true
+    # Health check configuration
+    healthCheck:
+      path: /api/health
+      checkInterval: 30
+      timeout: 10
+      retries: 3
