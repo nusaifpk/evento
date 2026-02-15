@@ -10,7 +10,9 @@
     "build": "cd client && npm run build",
     "preview": "cd client && npm run preview",
     "seed": "tsx server/src/events.seed.ts",
-    "install:all": "npm install && cd client && npm install && cd ../server && npm install"
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "render-build-only": "npm install && cd client && npm install && npm run build && cd .. && npm install --production=false",
+    "render-start": "node server/standalone-server.js"
   },
   "dependencies": {
     "dotenv": "^16.3.1",
