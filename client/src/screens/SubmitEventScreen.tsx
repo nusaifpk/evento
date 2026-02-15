@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, MapPin } from 'lucide-react';
+import { LocationPickerModal } from '../components/LocationPickerModal';
 
 const API_BASE_URL = '/api';
 
@@ -10,8 +11,8 @@ interface EventFormData {
   category: string;
   address: string;
   city: string;
-  latitude: string;
-  longitude: string;
+  latitude: number | null;
+  longitude: number | null;
   startDate: string;
   startTime: string;
   endDate: string;
@@ -41,14 +42,15 @@ export const SubmitEventScreen = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
   const [formData, setFormData] = useState<EventFormData>({
     title: '',
     description: '',
     category: 'Music',
     address: '',
     city: '',
-    latitude: '',
-    longitude: '',
+    latitude: null,
+    longitude: null,
     startDate: '',
     startTime: '',
     endDate: '',
@@ -76,8 +78,8 @@ export const SubmitEventScreen = () => {
         throw new Error('Please fill in all required fields');
       }
 
-      if (!formData.latitude || !formData.longitude) {
-        throw new Error('Please provide latitude and longitude');
+      if (formData.latitude === null || formData.longitude === null) {
+        throw new Error('Please select event location on map.');
       }
 
       if (!formData.startDate || !formData.startTime || !formData.endDate || !formData.endTime) {
@@ -103,8 +105,8 @@ export const SubmitEventScreen = () => {
         category: formData.category,
         address: formData.address,
         city: formData.city,
-        latitude: parseFloat(formData.latitude),
-        longitude: parseFloat(formData.longitude),
+        latitude: formData.latitude!,
+        longitude: formData.longitude!,
         startDate: startDateTime.toISOString(),
         endDate: endDateTime.toISOString(),
         price: parseFloat(formData.price) || 0,
@@ -136,8 +138,8 @@ export const SubmitEventScreen = () => {
           category: 'Music',
           address: '',
           city: '',
-          latitude: '',
-          longitude: '',
+          latitude: null,
+          longitude: null,
           startDate: '',
           startTime: '',
           endDate: '',
@@ -270,34 +272,24 @@ export const SubmitEventScreen = () => {
           />
         </div>
 
-        {/* Coordinates */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-semibold mb-2">Latitude *</label>
-            <input
-              type="number"
-              step="any"
-              name="latitude"
-              value={formData.latitude}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 bg-surface-dark border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f425f4] focus:border-transparent transition-all"
-              placeholder="12.9716"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-2">Longitude *</label>
-            <input
-              type="number"
-              step="any"
-              name="longitude"
-              value={formData.longitude}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 bg-surface-dark border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f425f4] focus:border-transparent transition-all"
-              placeholder="77.5946"
-            />
-          </div>
+        {/* Location Selection */}
+        <div>
+          <label className="block text-sm font-semibold mb-2">Event Location *</label>
+          <button
+            type="button"
+            onClick={() => setIsLocationPickerOpen(true)}
+            className="w-full px-4 py-3 bg-surface-dark border border-white/10 rounded-xl text-white hover:border-[#f425f4]/50 transition-all flex items-center justify-center gap-2"
+          >
+            <MapPin className="text-[#f425f4]" size={20} />
+            <span>Select Location on Map</span>
+          </button>
+          {formData.latitude !== null && formData.longitude !== null && (
+            <div className="mt-3 p-3 bg-[#f425f4]/10 border border-[#f425f4]/20 rounded-xl">
+              <p className="text-sm text-gray-300">
+                Selected: <span className="text-[#f425f4] font-mono">Lat: {formData.latitude.toFixed(6)} | Lng: {formData.longitude.toFixed(6)}</span>
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Date & Time */}
@@ -414,7 +406,19 @@ export const SubmitEventScreen = () => {
           {loading ? 'Submitting...' : 'Submit Event'}
         </button>
       </form>
+
+      {/* Location Picker Modal */}
+      <LocationPickerModal
+        isOpen={isLocationPickerOpen}
+        onClose={() => setIsLocationPickerOpen(false)}
+        onConfirm={(lat, lng) => {
+          setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+        }}
+        initialLat={formData.latitude}
+        initialLng={formData.longitude}
+      />
     </div>
   );
 };
+
 
