@@ -1,0 +1,34 @@
+services:
+  # Frontend Service
+  - type: web
+    name: evento-frontend
+    env: static
+    buildCommand: cd client && npm install && npm run build
+    staticPublishPath: ./client/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://evento-backend.onrender.com
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://evento-backend.onrender.com/api/*
+
+  # Backend Service  
+  - type: web
+    name: evento-backend
+    env: node
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+    healthCheckPath: /api/health
+
+databases:
+  - name: evento-db
+    databaseName: evento
+    user: evento
