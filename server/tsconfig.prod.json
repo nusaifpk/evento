@@ -20,7 +20,9 @@
   "exclude": [
     "node_modules",
     "dist",
-    "src/**/*.ts",
-    "!src/server.prod.ts"
+    "src/**/*.ts"
+  ],
+  "files": [
+    "src/server.prod.ts"
   ]
 }
